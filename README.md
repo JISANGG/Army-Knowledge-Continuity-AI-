@@ -1,16 +1,53 @@
-# React + Vite
+# 부대 행정 업무 AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+부대 행정 업무를 간편하게 정리하고, 기록을 보관하며, 업무 관련 질문에 빠르게 답변할 수 있도록 구성한 React 기반 데모 프로젝트입니다.
 
-Currently, two official plugins are available:
+## 주요 기능
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 로그인 화면 구성
+  - 계급, 군번, 비밀번호를 입력해 로그인
+- 사이드바 기반 업무 메뉴
+  - 대시보드
+  - 업무 관리
+  - 업무 해결 문서 작성
+- 업무 결과 기록 관리
+  - 제목, 상황, 발생 내용, 원인, 조치 내용, 결과를 입력해 저장
+  - 저장된 기록은 업무 관리 목록에서 확인 가능
+  - 상세 보기 기능으로 문서 내용을 펼쳐서 확인 가능
+  - 삭제 기능 제공
+- AI 업무 도우미
+  - 저장된 업무 기록을 기준으로 질문에 대한 답변 생성
+  - 관련 출처를 표시하고 업무 관리 화면으로 이동 가능
+- 로컬 저장소 기반 데이터 관리
+  - `localStorage`를 사용해 기록 유지
 
-## React Compiler
+## 프로젝트 구조
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/App.jsx` : 메인 화면, 로그인, 사이드바, 업무 관리 UI, AI 대화 UI 구성
+- `src/data/records.js` : 업무 기록 데이터 저장 및 관리 로직
+- `src/data/users.js` : 로그인 계정 mock 데이터
+- `src/data/sidebarState.js` : 사이드바 노출 조건 로직
 
-## Expanding the Oxlint configuration
+## 실행 방법
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm install
+npm run dev
+```
+
+## 빌드
+
+```bash
+npm run build
+```
+
+## 기술 스택
+
+- React
+- Vite
+- Material UI
+- JavaScript
+
+## 목적
+
+이 프로젝트는 군부대 행정업무를 간단한 데모 형태로 시각화하고, 업무 기록 관리와 AI 기반 업무 보조를 함께 체험할 수 있도록 설계되었습니다.
