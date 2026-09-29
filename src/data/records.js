@@ -61,15 +61,25 @@ export const createKnowledgeRecord = ({
   cause,
   action,
   result,
+  workDateTime,
+  assignee,
+  completionResult,
+  specialNotes,
+  attachmentName,
 }) => ({
   id: Date.now(),
   title: (title || '').trim(),
-  summary: (situation || '').trim() || '업무 기록이 저장되었습니다.',
+  summary: (completionResult || '').trim() || (situation || '').trim() || '업무 기록이 저장되었습니다.',
   situation: (situation || '').trim(),
   incident: (incident || '').trim(),
   cause: (cause || '').trim(),
-  action: (action || '').trim(),
-  result: (result || '').trim(),
+  action: (action || completionResult || '').trim(),
+  result: (result || completionResult || '').trim(),
+  workDateTime: (workDateTime || '').trim(),
+  assignee: (assignee || '').trim(),
+  completionResult: (completionResult || '').trim(),
+  specialNotes: (specialNotes || '').trim(),
+  attachmentName: (attachmentName || '').trim(),
 })
 
 export const addKnowledgeRecord = (record) => {
@@ -85,3 +95,6 @@ export const deleteKnowledgeRecord = (id) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   return next
 }
+
+export const getCompletedWorkRecords = (records) =>
+  records.filter((record) => Boolean(record.completionResult?.trim()))

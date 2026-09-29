@@ -35,6 +35,7 @@ import {
 import {
   Article,
   Assignment,
+  Bookmark,
   Chat,
   CheckCircle,
   CloudUpload,
@@ -55,7 +56,7 @@ import {
   VisibilityOff,
 } from '@mui/icons-material'
 import { mockUsers } from './data/users'
-import { addKnowledgeRecord, createKnowledgeRecord, deleteKnowledgeRecord, getKnowledgeDb } from './data/records'
+import { addKnowledgeRecord, createKnowledgeRecord, deleteKnowledgeRecord, getCompletedWorkRecords, getKnowledgeDb } from './data/records'
 import { getVisibleSidebarItems } from './data/sidebarState'
 
 const rankOptions = ['장교', '부사관', '용사']
@@ -75,7 +76,21 @@ const tasks = [
 
 const initialChatMessages = []
 
-const emptyRecordForm = {
+const emptyTodayWorkForm = {
+  title: '',
+  purpose: '',
+  specialNotes: '',
+}
+
+const emptyResultDocumentForm = {
+  title: '',
+  workDateTime: '',
+  assignee: '',
+  completionResult: '',
+  specialNotes: '',
+}
+
+const emptyKnowledgeForm = {
   title: '',
   situation: '',
   incident: '',
@@ -95,11 +110,17 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
   const [activeView, setActiveView] = useState('dashboard')
-  const [recordDialogOpen, setRecordDialogOpen] = useState(false)
-  const [recordForm, setRecordForm] = useState(emptyRecordForm)
-  const [uploadFileName, setUploadFileName] = useState('')
+  const [todayWorkDialogOpen, setTodayWorkDialogOpen] = useState(false)
+  const [resultDocumentDialogOpen, setResultDocumentDialogOpen] = useState(false)
+  const [knowledgeDialogOpen, setKnowledgeDialogOpen] = useState(false)
+  const [todayWorkForm, setTodayWorkForm] = useState(emptyTodayWorkForm)
+  const [resultDocumentForm, setResultDocumentForm] = useState(emptyResultDocumentForm)
+  const [knowledgeForm, setKnowledgeForm] = useState(emptyKnowledgeForm)
+  const [todayWorkUploadFileName, setTodayWorkUploadFileName] = useState('')
+  const [knowledgeUploadFileName, setKnowledgeUploadFileName] = useState('')
   const [knowledgeList, setKnowledgeList] = useState(() => getKnowledgeDb())
-  const [hasWrittenDocument, setHasWrittenDocument] = useState(false)
+  const [todayWorkDocument, setTodayWorkDocument] = useState(null)
+  const [todayResultDocument, setTodayResultDocument] = useState(null)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -132,46 +153,119 @@ function App() {
     setError('')
     setUserInfo(null)
     setActiveView('dashboard')
-    setRecordDialogOpen(false)
+    setTodayWorkDialogOpen(false)
+    setResultDocumentDialogOpen(false)
+    setKnowledgeDialogOpen(false)
   }
 
-  const handleRecordFieldChange = (event) => {
+  const handleTodayWorkFieldChange = (event) => {
     const { name, value } = event.target
-    setRecordForm((prev) => ({ ...prev, [name]: value }))
+    setTodayWorkForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleFileUpload = (event) => {
+  const handleTodayWorkFileUpload = (event) => {
     const file = event.target.files?.[0]
     if (file) {
-      setUploadFileName(file.name)
+      setTodayWorkUploadFileName(file.name)
     }
   }
 
-  const handleRecordSubmit = (event) => {
+  const handleTodayWorkSubmit = (event) => {
     event.preventDefault()
 
-    const trimmedTitle = recordForm.title.trim()
-    const trimmedSituation = recordForm.situation.trim()
+    const title = todayWorkForm.title.trim()
+    const purpose = todayWorkForm.purpose.trim()
 
-    if (!trimmedTitle || !trimmedSituation) {
+    if (!title || !purpose) {
+      return
+    }
+
+    setTodayWorkDocument({
+      title,
+      purpose,
+      specialNotes: todayWorkForm.specialNotes.trim(),
+      fileName: todayWorkUploadFileName,
+    })
+    setTodayResultDocument(null)
+    setTodayWorkForm(emptyTodayWorkForm)
+    setTodayWorkUploadFileName('')
+    setTodayWorkDialogOpen(false)
+    setActiveView('dashboard')
+  }
+
+  const handleResultDocumentFieldChange = (event) => {
+    const { name, value } = event.target
+    setResultDocumentForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleResultDocumentSubmit = (event) => {
+    event.preventDefault()
+
+    const title = resultDocumentForm.title.trim()
+    const workDateTime = resultDocumentForm.workDateTime.trim()
+    const assignee = resultDocumentForm.assignee.trim()
+    const completionResult = resultDocumentForm.completionResult.trim()
+
+    if (!title || !workDateTime || !assignee || !completionResult) {
       return
     }
 
     const newKnowledge = createKnowledgeRecord({
-      title: trimmedTitle,
-      situation: trimmedSituation,
-      incident: recordForm.incident.trim(),
-      cause: recordForm.cause.trim(),
-      action: recordForm.action.trim(),
-      result: recordForm.result.trim(),
+      title,
+      workDateTime,
+      assignee,
+      completionResult,
+      specialNotes: resultDocumentForm.specialNotes.trim(),
     })
 
     setKnowledgeList(addKnowledgeRecord(newKnowledge))
-    setHasWrittenDocument(true)
-    setRecordForm(emptyRecordForm)
-    setUploadFileName('')
-    setRecordDialogOpen(false)
-    setActiveView('management')
+    setTodayResultDocument(newKnowledge)
+    setResultDocumentForm(emptyResultDocumentForm)
+    setResultDocumentDialogOpen(false)
+    setActiveView('completed')
+  }
+
+  const handleKnowledgeFieldChange = (event) => {
+    const { name, value } = event.target
+    setKnowledgeForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleKnowledgeFileUpload = (event) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setKnowledgeUploadFileName(file.name)
+    }
+  }
+
+  const handleKnowledgeSubmit = (event) => {
+    event.preventDefault()
+
+    const title = knowledgeForm.title.trim()
+    const situation = knowledgeForm.situation.trim()
+    const incident = knowledgeForm.incident.trim()
+    const cause = knowledgeForm.cause.trim()
+    const action = knowledgeForm.action.trim()
+    const result = knowledgeForm.result.trim()
+
+    if (!title || !situation || !incident || !cause || !action || !result) {
+      return
+    }
+
+    const newKnowledge = createKnowledgeRecord({
+      title,
+      situation,
+      incident,
+      cause,
+      action,
+      result,
+      attachmentName: knowledgeUploadFileName,
+    })
+
+    setKnowledgeList(addKnowledgeRecord(newKnowledge))
+    setKnowledgeForm(emptyKnowledgeForm)
+    setKnowledgeUploadFileName('')
+    setKnowledgeDialogOpen(false)
+    setActiveView('knowledge')
   }
 
   const handleDeleteRecord = (id) => {
@@ -185,17 +279,32 @@ function App() {
         onLogout={handleLogout}
         activeView={activeView}
         onViewChange={setActiveView}
-        recordDialogOpen={recordDialogOpen}
-        onRecordDialogOpen={() => setRecordDialogOpen(true)}
-        onRecordDialogClose={() => setRecordDialogOpen(false)}
+        todayWorkDialogOpen={todayWorkDialogOpen}
+        onTodayWorkDialogOpen={() => setTodayWorkDialogOpen(true)}
+        onTodayWorkDialogClose={() => setTodayWorkDialogOpen(false)}
+        onTodayWorkSubmit={handleTodayWorkSubmit}
+        todayWorkForm={todayWorkForm}
+        onTodayWorkFieldChange={handleTodayWorkFieldChange}
+        onTodayWorkFileUpload={handleTodayWorkFileUpload}
+        todayWorkUploadFileName={todayWorkUploadFileName}
+        resultDocumentDialogOpen={resultDocumentDialogOpen}
+        onResultDocumentDialogOpen={() => setResultDocumentDialogOpen(true)}
+        onResultDocumentDialogClose={() => setResultDocumentDialogOpen(false)}
+        onResultDocumentSubmit={handleResultDocumentSubmit}
+        resultDocumentForm={resultDocumentForm}
+        onResultDocumentFieldChange={handleResultDocumentFieldChange}
+        knowledgeDialogOpen={knowledgeDialogOpen}
+        onKnowledgeDialogOpen={() => setKnowledgeDialogOpen(true)}
+        onKnowledgeDialogClose={() => setKnowledgeDialogOpen(false)}
+        onKnowledgeSubmit={handleKnowledgeSubmit}
+        knowledgeForm={knowledgeForm}
+        onKnowledgeFieldChange={handleKnowledgeFieldChange}
+        onKnowledgeFileUpload={handleKnowledgeFileUpload}
+        knowledgeUploadFileName={knowledgeUploadFileName}
         knowledgeList={knowledgeList}
-        recordForm={recordForm}
-        onRecordFieldChange={handleRecordFieldChange}
-        onFileUpload={handleFileUpload}
-        uploadFileName={uploadFileName}
-        onRecordSubmit={handleRecordSubmit}
         onDeleteRecord={handleDeleteRecord}
-        hasWrittenDocument={hasWrittenDocument}
+        todayWorkDocument={todayWorkDocument}
+        todayResultDocument={todayResultDocument}
       />
     )
   }
@@ -232,7 +341,7 @@ function App() {
               부대 업무 AI
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              계급, 군번, 비밀번호를 입력해 주세요.
+              TACS 계급, 군번, 비밀번호를 입력해 주세요.
             </Typography>
           </Stack>
 
@@ -309,17 +418,32 @@ function AdminDashboard({
   onLogout,
   activeView,
   onViewChange,
-  recordDialogOpen,
-  onRecordDialogOpen,
-  onRecordDialogClose,
+  todayWorkDialogOpen,
+  onTodayWorkDialogOpen,
+  onTodayWorkDialogClose,
+  onTodayWorkSubmit,
+  todayWorkForm,
+  onTodayWorkFieldChange,
+  onTodayWorkFileUpload,
+  todayWorkUploadFileName,
+  resultDocumentDialogOpen,
+  onResultDocumentDialogOpen,
+  onResultDocumentDialogClose,
+  onResultDocumentSubmit,
+  resultDocumentForm,
+  onResultDocumentFieldChange,
+  knowledgeDialogOpen,
+  onKnowledgeDialogOpen,
+  onKnowledgeDialogClose,
+  onKnowledgeSubmit,
+  knowledgeForm,
+  onKnowledgeFieldChange,
+  onKnowledgeFileUpload,
+  knowledgeUploadFileName,
   knowledgeList,
-  recordForm,
-  onRecordFieldChange,
-  onFileUpload,
-  uploadFileName,
-  onRecordSubmit,
   onDeleteRecord,
-  hasWrittenDocument,
+  todayWorkDocument,
+  todayResultDocument,
 }) {
   const [chatMessages, setChatMessages] = useState(initialChatMessages)
   const [chatInput, setChatInput] = useState('')
@@ -327,12 +451,15 @@ function AdminDashboard({
 
   const sideItems = getVisibleSidebarItems(
     [
-      { id: 'record', label: '업무 해결 문서 작성', icon: NoteAdd },
+      { id: 'record', label: '오늘의 업무 작성하기', icon: NoteAdd },
       { id: 'dashboard', label: '대시보드', icon: DashboardIcon },
-      { id: 'management', label: '업무 관리', icon: Assignment },
+      { id: 'completed', label: '완료된 업무', icon: CheckCircle },
+      { id: 'knowledge', label: '저장된 지식', icon: Bookmark },
     ],
-    hasWrittenDocument,
   )
+  const displayedRecords = activeView === 'completed'
+    ? getCompletedWorkRecords(knowledgeList)
+    : knowledgeList
 
   const getAiReplyFromKnowledge = (question) => {
     const trimmed = question.trim()
@@ -436,7 +563,7 @@ function AdminDashboard({
                   selected={isActive && id !== 'record' && id !== 'dashboard'}
                   onClick={() => {
                     if (id === 'record') {
-                      onRecordDialogOpen()
+                      onTodayWorkDialogOpen()
                       return
                     }
                     onViewChange(id)
@@ -494,16 +621,6 @@ function AdminDashboard({
         >
           <Toolbar sx={{ justifyContent: 'space-between', px: 3 }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a' }}>
-                {activeView === 'record'
-                  ? '업무 해결 문서 작성'
-                  : activeView === 'knowledge'
-                    ? '저장된 지식'
-                    : '업무 대시보드'}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {userInfo?.rank} · {userInfo?.name}
-              </Typography>
             </Box>
 
             <Stack direction="row" spacing={1.5} alignItems="center">
@@ -520,109 +637,257 @@ function AdminDashboard({
         </AppBar>
 
         <Container maxWidth="xl" sx={{ py: 3 }}>
-          <Dialog open={recordDialogOpen} onClose={onRecordDialogClose} maxWidth="md" fullWidth>
-            <DialogTitle>부대 업무 기록하기</DialogTitle>
+          <Dialog open={todayWorkDialogOpen} onClose={onTodayWorkDialogClose} maxWidth="md" fullWidth>
+            <DialogTitle>오늘의 업무 작성하기</DialogTitle>
             <DialogContent>
-              <Box component="form" id="record-dialog-form" onSubmit={onRecordSubmit} noValidate>
+              <Box component="form" id="today-work-form" onSubmit={onTodayWorkSubmit} noValidate>
                 <Stack spacing={2.5} sx={{ pt: 1 }}>
                   <TextField
                     fullWidth
-                    label="제목"
+                    label="업무명"
                     name="title"
-                    value={recordForm.title}
-                    onChange={onRecordFieldChange}
-                    placeholder="예: 교육 일정 지연 대응 기록"
+                    value={todayWorkForm.title}
+                    onChange={onTodayWorkFieldChange}
+                    placeholder="업무명을 입력해 주세요."
+                    required
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="업무 목적"
+                    name="purpose"
+                    value={todayWorkForm.purpose}
+                    onChange={onTodayWorkFieldChange}
+                    placeholder="업무 목적을 입력해 주세요."
+                    multiline
+                    minRows={2}
+                    required
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="특이사항"
+                    name="specialNotes"
+                    value={todayWorkForm.specialNotes}
+                    onChange={onTodayWorkFieldChange}
+                    placeholder="참고할 특이사항을 입력해 주세요."
+                    multiline
+                    minRows={3}
+                  />
+
+                  <Button component="label" variant="outlined" startIcon={<CloudUpload />} sx={{ alignSelf: 'flex-start' }}>
+                    파일 업로드
+                    <input hidden type="file" onChange={onTodayWorkFileUpload} />
+                  </Button>
+
+                  {todayWorkUploadFileName && (
+                    <Chip label={todayWorkUploadFileName} color="primary" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
+                  )}
+                </Stack>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+              <Button onClick={onTodayWorkDialogClose}>닫기</Button>
+              <Button type="submit" form="today-work-form" variant="contained">
+                업무 저장
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={resultDocumentDialogOpen} onClose={onResultDocumentDialogClose} maxWidth="md" fullWidth>
+            <DialogTitle>오늘의 업무 결과 문서 작성</DialogTitle>
+            <DialogContent>
+              <Box component="form" id="result-document-form" onSubmit={onResultDocumentSubmit} noValidate>
+                <Stack spacing={2.5} sx={{ pt: 1 }}>
+                  <TextField
+                    fullWidth
+                    label="업무명"
+                    name="title"
+                    value={resultDocumentForm.title}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="업무명을 입력해 주세요."
+                    required
+                  />
+
+                  <Box>
+                    <Typography component="label" htmlFor="result-work-date-time" variant="body2" sx={{ display: 'block', mb: 0.75, color: 'text.secondary' }}>
+                      업무 일시
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      id="result-work-date-time"
+                      name="workDateTime"
+                      type="datetime-local"
+                      value={resultDocumentForm.workDateTime}
+                      onChange={onResultDocumentFieldChange}
+                      required
+                    />
+                  </Box>
+
+                  <TextField
+                    fullWidth
+                    label="담당자"
+                    name="assignee"
+                    value={resultDocumentForm.assignee}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="담당자를 입력해 주세요."
+                    required
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="완료결과"
+                    name="completionResult"
+                    value={resultDocumentForm.completionResult}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="완료 결과를 입력해 주세요."
+                    multiline
+                    minRows={3}
+                    required
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="특이사항"
+                    name="specialNotes"
+                    value={resultDocumentForm.specialNotes}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="참고할 특이사항을 입력해 주세요."
+                    multiline
+                    minRows={3}
+                  />
+                </Stack>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+              <Button onClick={onResultDocumentDialogClose}>닫기</Button>
+              <Button type="submit" form="result-document-form" variant="contained">
+                결과 문서 저장
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={knowledgeDialogOpen} onClose={onKnowledgeDialogClose} maxWidth="md" fullWidth>
+            <DialogTitle>지식 기록하기</DialogTitle>
+            <DialogContent>
+              <Box component="form" id="knowledge-record-form" onSubmit={onKnowledgeSubmit} noValidate>
+                <Stack spacing={2.5} sx={{ pt: 1 }}>
+                  <TextField
+                    fullWidth
+                    label="업무명"
+                    name="title"
+                    value={knowledgeForm.title}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="업무명을 입력해 주세요."
+                    required
                   />
 
                   <TextField
                     fullWidth
                     label="상황"
                     name="situation"
-                    value={recordForm.situation}
-                    onChange={onRecordFieldChange}
-                    placeholder="업무 상황을 간단히 설명해 주세요."
+                    value={knowledgeForm.situation}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="업무 상황을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
 
                   <TextField
                     fullWidth
                     label="발생 내용"
                     name="incident"
-                    value={recordForm.incident}
-                    onChange={onRecordFieldChange}
-                    placeholder="어떤 상황이 발생했는지 작성해 주세요."
+                    value={knowledgeForm.incident}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="발생한 내용을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
 
                   <TextField
                     fullWidth
                     label="원인"
                     name="cause"
-                    value={recordForm.cause}
-                    onChange={onRecordFieldChange}
-                    placeholder="발생 원인을 분석해 주세요."
+                    value={knowledgeForm.cause}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="원인을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
 
                   <TextField
                     fullWidth
                     label="조치 내용"
                     name="action"
-                    value={recordForm.action}
-                    onChange={onRecordFieldChange}
-                    placeholder="조치 및 대응 내용을 작성해 주세요."
+                    value={knowledgeForm.action}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="조치 내용을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
 
                   <TextField
                     fullWidth
                     label="결과"
                     name="result"
-                    value={recordForm.result}
-                    onChange={onRecordFieldChange}
-                    placeholder="결과와 개선점을 작성해 주세요."
+                    value={knowledgeForm.result}
+                    onChange={onKnowledgeFieldChange}
+                    placeholder="결과를 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
 
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUpload />}
-                    sx={{ alignSelf: 'flex-start' }}
-                  >
+                  <Button component="label" variant="outlined" startIcon={<CloudUpload />} sx={{ alignSelf: 'flex-start' }}>
                     파일 업로드
-                    <input hidden type="file" onChange={onFileUpload} />
+                    <input hidden type="file" onChange={onKnowledgeFileUpload} />
                   </Button>
 
-                  {uploadFileName && (
-                    <Chip label={uploadFileName} color="primary" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
+                  {knowledgeUploadFileName && (
+                    <Chip label={knowledgeUploadFileName} color="primary" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
                   )}
                 </Stack>
               </Box>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={onRecordDialogClose}>닫기</Button>
-              <Button type="submit" form="record-dialog-form" variant="contained">
-                기록 저장
+              <Button onClick={onKnowledgeDialogClose}>닫기</Button>
+              <Button type="submit" form="knowledge-record-form" variant="contained">
+                지식 저장
               </Button>
             </DialogActions>
           </Dialog>
 
-          {(activeView === 'knowledge' || activeView === 'management') && (
+          {activeView === 'knowledge' && (
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>저장된 지식</Typography>
+              <Button variant="contained" startIcon={<NoteAdd />} onClick={onKnowledgeDialogOpen} sx={{ ml: 2 }}>
+                지식 기록하기
+              </Button>
+            </Stack>
+          )}
+
+          {(activeView === 'knowledge' || activeView === 'management' || activeView === 'completed') && (
             <Stack spacing={2.5}>
-              {knowledgeList.map((item) => {
-                const detailEntries = [
-                  ['상황', item.situation],
-                  ['발생 내용', item.incident],
-                  ['원인', item.cause],
-                  ['조치 내용', item.action],
-                  ['결과', item.result],
-                ].filter(([, value]) => value && String(value).trim())
+              {displayedRecords.map((item) => {
+                const isResultDocument = item.workDateTime || item.assignee || item.completionResult || item.specialNotes
+                const detailEntries = (isResultDocument
+                  ? [
+                      ['업무일시', item.workDateTime],
+                      ['담당자', item.assignee],
+                      ['완료결과', item.completionResult],
+                      ['특이사항', item.specialNotes],
+                    ]
+                  : [
+                      ['상황', item.situation],
+                      ['발생 내용', item.incident],
+                      ['원인', item.cause],
+                      ['조치 내용', item.action],
+                      ['결과', item.result],
+                    ]).concat([['첨부 파일', item.attachmentName]]).filter(([, value]) => value && String(value).trim())
 
                 const isExpanded = !!expandedRecords[item.id]
 
@@ -714,10 +979,15 @@ function AdminDashboard({
                   </Paper>
                 )
               })}
+              {displayedRecords.length === 0 && (
+                <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+                  완료된 업무가 없습니다.
+                </Typography>
+              )}
             </Stack>
           )}
 
-          {activeView !== 'record' && activeView !== 'knowledge' && activeView !== 'management' && (
+          {activeView !== 'record' && activeView !== 'knowledge' && activeView !== 'management' && activeView !== 'completed' && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Box sx={{ width: '100%', maxWidth: 1000 }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
@@ -755,18 +1025,17 @@ function AdminDashboard({
                   ))}
                 </Stack>
 
-                {!hasWrittenDocument && (
+                {todayWorkDocument && (
                   <Paper sx={{ p: 2.5, borderRadius: 4, mb: 2.5, border: '1px solid rgba(37, 99, 235, 0.12)', bgcolor: '#eff6ff' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ width: '100%' }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="overline" color="primary.main">운영 알림</Typography>
                         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>오늘의 부대 업무</Typography>
                       </Box>
                       <Button
                         variant="contained"
                         size="small"
                         startIcon={<NoteAdd fontSize="inherit" />}
-                        onClick={onRecordDialogOpen}
+                        onClick={onResultDocumentDialogOpen}
                         sx={{
                           whiteSpace: 'nowrap',
                           borderRadius: 1.5,
@@ -782,9 +1051,49 @@ function AdminDashboard({
                         결과 문서 작성하기
                       </Button>
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, lineHeight: 1.8 }}>
-                      보급 상태 점검과 근무 일정 확인이 완료되었으며, 추가로 확인해야 할 교육 준비와 인원 배치 사항만 정리하면 됩니다.
+                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 700 }}>
+                      {todayWorkDocument.title}
                     </Typography>
+                    <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                      {[
+                        ['업무 목적', todayWorkDocument.purpose],
+                        ['특이사항', todayWorkDocument.specialNotes],
+                      ].filter(([, value]) => value).map(([label, value]) => (
+                        <Box key={label}>
+                          <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', mb: 0.4 }}>
+                            {label}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#0f172a', whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                            {value}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                    {todayWorkDocument.fileName && (
+                      <Chip label={todayWorkDocument.fileName} color="primary" variant="outlined" sx={{ mt: 1.5 }} />
+                    )}
+                    {todayResultDocument && (
+                      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(15, 23, 42, 0.1)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.25 }}>결과 문서</Typography>
+                        <Stack spacing={1.5}>
+                          {[
+                            ['업무일시', todayResultDocument.workDateTime],
+                            ['담당자', todayResultDocument.assignee],
+                            ['완료결과', todayResultDocument.completionResult],
+                            ['특이사항', todayResultDocument.specialNotes],
+                          ].filter(([, value]) => value).map(([label, value]) => (
+                            <Box key={label}>
+                              <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', mb: 0.4 }}>
+                                {label}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: '#0f172a', whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                                {value}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
                   </Paper>
                 )}
 

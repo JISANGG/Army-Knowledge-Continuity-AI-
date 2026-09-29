@@ -13,10 +13,4 @@ export const todayMissionList = [
   },
 ]
 
-export const getVisibleSidebarItems = (items, hasWrittenDocument) => {
-  if (!hasWrittenDocument) {
-    return items
-  }
-
-  return items.filter((item) => item.id !== 'record')
-}
+export const getVisibleSidebarItems = (items) => items
