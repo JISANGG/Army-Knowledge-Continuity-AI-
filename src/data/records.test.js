@@ -14,7 +14,7 @@ globalThis.localStorage = {
   },
 }
 
-const { createKnowledgeRecord, getCompletedWorkRecords } = await import('./records.js')
+const { createKnowledgeRecord, getCompletedWorkRecords, getKnowledgeDb, initialKnowledge } = await import('./records.js')
 
 test('createKnowledgeRecord preserves full record details', () => {
   const record = createKnowledgeRecord({
@@ -51,6 +51,28 @@ test('createKnowledgeRecord preserves result document fields', () => {
   assert.equal(record.summary, '점검 완료')
 })
 
+test('structured result documents preserve requested details and count as completed', () => {
+  const record = createKnowledgeRecord({
+    title: '훈련 보급 일정 조정',
+    workDateTime: '2026-09-29T14:30',
+    situation: '훈련 일정 변경으로 보급 준비가 지연됐다.',
+    incident: '일부 물자가 예정일보다 늦게 도착했다.',
+    cause: '변경된 일정이 요청 문서에 반영되지 않았다.',
+    action: '필수 물자부터 재확인하고 담당자를 지정했다.',
+    result: '훈련 전 물자 준비를 완료했다.',
+    completionResult: '훈련 전 물자 준비를 완료했다.',
+    attachmentName: 'supply-checklist.pdf',
+  })
+
+  assert.equal(record.situation, '훈련 일정 변경으로 보급 준비가 지연됐다.')
+  assert.equal(record.incident, '일부 물자가 예정일보다 늦게 도착했다.')
+  assert.equal(record.cause, '변경된 일정이 요청 문서에 반영되지 않았다.')
+  assert.equal(record.action, '필수 물자부터 재확인하고 담당자를 지정했다.')
+  assert.equal(record.result, '훈련 전 물자 준비를 완료했다.')
+  assert.equal(record.attachmentName, 'supply-checklist.pdf')
+  assert.deepEqual(getCompletedWorkRecords([record]), [record])
+})
+
 test('createKnowledgeRecord preserves knowledge attachment name', () => {
   const record = createKnowledgeRecord({
     title: '장비 점검 기록',
@@ -73,4 +95,20 @@ test('getCompletedWorkRecords includes only records with a completion result', (
   const unfinished = createKnowledgeRecord({ title: '교육 준비' })
 
   assert.deepEqual(getCompletedWorkRecords([completed, unfinished]), [completed])
+})
+
+test('getKnowledgeDb refreshes built-in records and preserves custom records', () => {
+  const customRecord = { id: 12345, title: '사용자 기록', summary: '직접 추가한 업무 기록' }
+  globalThis.localStorage.setItem('military-knowledge-db', JSON.stringify([
+    { id: 1, title: '이전 기본 기록', summary: '저장돼 있던 짧은 내용' },
+    customRecord,
+  ]))
+
+  const records = getKnowledgeDb()
+  const savedRecords = JSON.parse(globalThis.localStorage.getItem('military-knowledge-db'))
+
+  assert.equal(records[0].title, initialKnowledge[0].title)
+  assert.equal(records[0].summary, initialKnowledge[0].summary)
+  assert.deepEqual(records[1], customRecord)
+  assert.deepEqual(savedRecords, records)
 })

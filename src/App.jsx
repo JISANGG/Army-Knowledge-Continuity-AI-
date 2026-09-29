@@ -33,23 +33,19 @@ import {
   Typography,
 } from '@mui/material'
 import {
+  Add,
   Article,
-  Assignment,
   Bookmark,
-  Chat,
+  Send,
   CheckCircle,
   CloudUpload,
   Dashboard as DashboardIcon,
   Delete,
   History,
-  LibraryBooks,
   Lock,
   NoteAdd,
   Notifications,
   Person,
-  Schedule,
-  Search,
-  Settings,
   Shield,
   TrendingUp,
   Visibility,
@@ -58,20 +54,15 @@ import {
 import { mockUsers } from './data/users'
 import { addKnowledgeRecord, createKnowledgeRecord, deleteKnowledgeRecord, getCompletedWorkRecords, getKnowledgeDb } from './data/records'
 import { getVisibleSidebarItems } from './data/sidebarState'
+import SoldierVersionPage from './SoldierVersionPage'
 
 const rankOptions = ['장교', '부사관', '용사']
 
 const summaryCards = [
-  { label: '오늘 처리 업무', value: '18건', tone: 'primary', icon: CheckCircle },
-  { label: '긴급 보고', value: '3건', tone: 'warning', icon: Notifications },
+  { label: '저장된 지식', value: '18건', tone: 'primary', icon: CheckCircle },
+  { label: '완료된 업무', value: '3건', tone: 'warning', icon: Notifications },
   { label: '재검토 문서', value: '5건', tone: 'secondary', icon: Article },
   { label: '업무 처리율', value: '92%', tone: 'success', icon: TrendingUp },
-]
-
-const tasks = [
-  { title: '부대 인사 명단 점검', time: '09:30', status: '진행중' },
-  { title: '방호 복무 일정 확정', time: '11:00', status: '대기' },
-  { title: '월간 교육 보고서 작성', time: '14:00', status: '검토중' },
 ]
 
 const initialChatMessages = []
@@ -85,9 +76,11 @@ const emptyTodayWorkForm = {
 const emptyResultDocumentForm = {
   title: '',
   workDateTime: '',
-  assignee: '',
-  completionResult: '',
-  specialNotes: '',
+  situation: '',
+  incident: '',
+  cause: '',
+  action: '',
+  result: '',
 }
 
 const emptyKnowledgeForm = {
@@ -108,6 +101,7 @@ function App() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showSoldierVersion, setShowSoldierVersion] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
   const [activeView, setActiveView] = useState('dashboard')
   const [todayWorkDialogOpen, setTodayWorkDialogOpen] = useState(false)
@@ -117,6 +111,7 @@ function App() {
   const [resultDocumentForm, setResultDocumentForm] = useState(emptyResultDocumentForm)
   const [knowledgeForm, setKnowledgeForm] = useState(emptyKnowledgeForm)
   const [todayWorkUploadFileName, setTodayWorkUploadFileName] = useState('')
+  const [resultDocumentUploadFileName, setResultDocumentUploadFileName] = useState('')
   const [knowledgeUploadFileName, setKnowledgeUploadFileName] = useState('')
   const [knowledgeList, setKnowledgeList] = useState(() => getKnowledgeDb())
   const [todayWorkDocument, setTodayWorkDocument] = useState(null)
@@ -144,6 +139,13 @@ function App() {
 
     setError('')
     setUserInfo(user)
+
+    if (form.rank === '용사') {
+      setIsLoggedIn(false)
+      setShowSoldierVersion(true)
+      return
+    }
+
     setIsLoggedIn(true)
   }
 
@@ -156,6 +158,7 @@ function App() {
     setTodayWorkDialogOpen(false)
     setResultDocumentDialogOpen(false)
     setKnowledgeDialogOpen(false)
+    setResultDocumentUploadFileName('')
   }
 
   const handleTodayWorkFieldChange = (event) => {
@@ -198,29 +201,45 @@ function App() {
     setResultDocumentForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleResultDocumentFileUpload = (event) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setResultDocumentUploadFileName(file.name)
+    }
+  }
+
   const handleResultDocumentSubmit = (event) => {
     event.preventDefault()
 
     const title = resultDocumentForm.title.trim()
     const workDateTime = resultDocumentForm.workDateTime.trim()
-    const assignee = resultDocumentForm.assignee.trim()
-    const completionResult = resultDocumentForm.completionResult.trim()
+    const situation = resultDocumentForm.situation.trim()
+    const incident = resultDocumentForm.incident.trim()
+    const cause = resultDocumentForm.cause.trim()
+    const action = resultDocumentForm.action.trim()
+    const result = resultDocumentForm.result.trim()
 
-    if (!title || !workDateTime || !assignee || !completionResult) {
+    if (!title || !workDateTime || !situation || !incident || !cause || !action || !result) {
       return
     }
 
     const newKnowledge = createKnowledgeRecord({
       title,
       workDateTime,
-      assignee,
-      completionResult,
-      specialNotes: resultDocumentForm.specialNotes.trim(),
+      situation,
+      incident,
+      cause,
+      action,
+      result,
+      completionResult: result,
+      attachmentName: resultDocumentUploadFileName,
     })
 
     setKnowledgeList(addKnowledgeRecord(newKnowledge))
-    setTodayResultDocument(newKnowledge)
+    setTodayWorkDocument(null)
+    setTodayResultDocument(null)
     setResultDocumentForm(emptyResultDocumentForm)
+    setResultDocumentUploadFileName('')
     setResultDocumentDialogOpen(false)
     setActiveView('completed')
   }
@@ -272,6 +291,10 @@ function App() {
     setKnowledgeList(deleteKnowledgeRecord(id))
   }
 
+  if (showSoldierVersion) {
+    return <SoldierVersionPage onBack={() => setShowSoldierVersion(false)} />
+  }
+
   if (isLoggedIn && userInfo) {
     return (
       <AdminDashboard
@@ -288,11 +311,16 @@ function App() {
         onTodayWorkFileUpload={handleTodayWorkFileUpload}
         todayWorkUploadFileName={todayWorkUploadFileName}
         resultDocumentDialogOpen={resultDocumentDialogOpen}
-        onResultDocumentDialogOpen={() => setResultDocumentDialogOpen(true)}
+        onResultDocumentDialogOpen={() => {
+          setResultDocumentForm((prev) => ({ ...prev, title: todayWorkDocument?.title || prev.title }))
+          setResultDocumentDialogOpen(true)
+        }}
         onResultDocumentDialogClose={() => setResultDocumentDialogOpen(false)}
         onResultDocumentSubmit={handleResultDocumentSubmit}
         resultDocumentForm={resultDocumentForm}
         onResultDocumentFieldChange={handleResultDocumentFieldChange}
+        onResultDocumentFileUpload={handleResultDocumentFileUpload}
+        resultDocumentUploadFileName={resultDocumentUploadFileName}
         knowledgeDialogOpen={knowledgeDialogOpen}
         onKnowledgeDialogOpen={() => setKnowledgeDialogOpen(true)}
         onKnowledgeDialogClose={() => setKnowledgeDialogOpen(false)}
@@ -338,7 +366,7 @@ function App() {
               <Lock fontSize="large" />
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              부대 업무 AI
+              부대 지식 영속화 AI
             </Typography>
             <Typography variant="body2" color="text.secondary">
               TACS 계급, 군번, 비밀번호를 입력해 주세요.
@@ -432,6 +460,8 @@ function AdminDashboard({
   onResultDocumentSubmit,
   resultDocumentForm,
   onResultDocumentFieldChange,
+  onResultDocumentFileUpload,
+  resultDocumentUploadFileName,
   knowledgeDialogOpen,
   onKnowledgeDialogOpen,
   onKnowledgeDialogClose,
@@ -448,6 +478,16 @@ function AdminDashboard({
   const [chatMessages, setChatMessages] = useState(initialChatMessages)
   const [chatInput, setChatInput] = useState('')
   const [expandedRecords, setExpandedRecords] = useState({})
+  const completedWorkCount = getCompletedWorkRecords(knowledgeList).length
+  const dashboardSummaryCards = summaryCards.map((card) => {
+    if (card.label === '저장된 지식') {
+      return { ...card, value: `${knowledgeList.length}건` }
+    }
+    if (card.label === '완료된 업무') {
+      return { ...card, value: `${completedWorkCount}건` }
+    }
+    return card
+  })
 
   const sideItems = getVisibleSidebarItems(
     [
@@ -514,6 +554,11 @@ function AdminDashboard({
     }])
   }
 
+  const handleNewChat = () => {
+    setChatMessages([])
+    setChatInput('')
+  }
+
   const toggleExpandedRecord = (id) => {
     setExpandedRecords((prev) => ({
       ...prev,
@@ -544,7 +589,7 @@ function AdminDashboard({
             </Avatar>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#fff' }}>
-                부대 업무 AI
+                부대 지식 영속화 AI
               </Typography>
               <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                 관리자 포털
@@ -631,7 +676,7 @@ function AdminDashboard({
               <Button variant="outlined" color="primary" size="small" onClick={onLogout}>
                 로그아웃
               </Button>
-              <Avatar sx={{ bgcolor: '#0f766e', width: 34, height: 34 }}>{userInfo?.name?.[0]}</Avatar>
+              <Avatar sx={{ bgcolor: '#2563eb', width: 34, height: 34 }}>{userInfo?.name?.[0]}</Avatar>
             </Stack>
           </Toolbar>
         </AppBar>
@@ -726,36 +771,72 @@ function AdminDashboard({
 
                   <TextField
                     fullWidth
-                    label="담당자"
-                    name="assignee"
-                    value={resultDocumentForm.assignee}
+                    label="상황"
+                    name="situation"
+                    value={resultDocumentForm.situation}
                     onChange={onResultDocumentFieldChange}
-                    placeholder="담당자를 입력해 주세요."
+                    placeholder="업무 상황을 입력해 주세요."
+                    multiline
+                    minRows={2}
                     required
                   />
 
                   <TextField
                     fullWidth
-                    label="완료결과"
-                    name="completionResult"
-                    value={resultDocumentForm.completionResult}
+                    label="발생내용"
+                    name="incident"
+                    value={resultDocumentForm.incident}
                     onChange={onResultDocumentFieldChange}
-                    placeholder="완료 결과를 입력해 주세요."
+                    placeholder="발생한 내용을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
                     required
                   />
 
                   <TextField
                     fullWidth
-                    label="특이사항"
-                    name="specialNotes"
-                    value={resultDocumentForm.specialNotes}
+                    label="원인"
+                    name="cause"
+                    value={resultDocumentForm.cause}
                     onChange={onResultDocumentFieldChange}
-                    placeholder="참고할 특이사항을 입력해 주세요."
+                    placeholder="원인을 입력해 주세요."
                     multiline
-                    minRows={3}
+                    minRows={2}
+                    required
                   />
+
+                  <TextField
+                    fullWidth
+                    label="조치내용"
+                    name="action"
+                    value={resultDocumentForm.action}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="조치 내용을 입력해 주세요."
+                    multiline
+                    minRows={2}
+                    required
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="조치결과"
+                    name="result"
+                    value={resultDocumentForm.result}
+                    onChange={onResultDocumentFieldChange}
+                    placeholder="조치 결과를 입력해 주세요."
+                    multiline
+                    minRows={2}
+                    required
+                  />
+
+                  <Button component="label" variant="outlined" startIcon={<CloudUpload />} sx={{ alignSelf: 'flex-start' }}>
+                    파일 업로드
+                    <input hidden type="file" onChange={onResultDocumentFileUpload} />
+                  </Button>
+
+                  {resultDocumentUploadFileName && (
+                    <Chip label={resultDocumentUploadFileName} color="primary" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
+                  )}
                 </Stack>
               </Box>
             </DialogContent>
@@ -863,7 +944,7 @@ function AdminDashboard({
 
           {activeView === 'knowledge' && (
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>저장된 지식</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700,ml:2 }}>저장된 지식</Typography>
               <Button variant="contained" startIcon={<NoteAdd />} onClick={onKnowledgeDialogOpen} sx={{ ml: 2 }}>
                 지식 기록하기
               </Button>
@@ -874,12 +955,23 @@ function AdminDashboard({
             <Stack spacing={2.5}>
               {displayedRecords.map((item) => {
                 const isResultDocument = item.workDateTime || item.assignee || item.completionResult || item.specialNotes
+                const hasStructuredResult = item.situation || item.incident || item.cause || item.action || item.result
                 const detailEntries = (isResultDocument
                   ? [
                       ['업무일시', item.workDateTime],
-                      ['담당자', item.assignee],
-                      ['완료결과', item.completionResult],
-                      ['특이사항', item.specialNotes],
+                      ...(hasStructuredResult
+                        ? [
+                            ['상황', item.situation],
+                            ['발생내용', item.incident],
+                            ['원인', item.cause],
+                            ['조치내용', item.action],
+                            ['조치결과', item.result || item.completionResult],
+                          ]
+                        : [
+                            ['담당자', item.assignee],
+                            ['완료결과', item.completionResult],
+                            ['특이사항', item.specialNotes],
+                          ]),
                     ]
                   : [
                       ['상황', item.situation],
@@ -991,7 +1083,7 @@ function AdminDashboard({
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Box sx={{ width: '100%', maxWidth: 1000 }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
-                  {summaryCards.map(({ label, value, tone, icon: Icon }) => (
+                  {dashboardSummaryCards.map(({ label, value, tone, icon: Icon }) => (
                     <Card key={label} sx={{ flex: 1, borderRadius: 3 }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
@@ -1029,7 +1121,7 @@ function AdminDashboard({
                   <Paper sx={{ p: 2.5, borderRadius: 4, mb: 2.5, border: '1px solid rgba(37, 99, 235, 0.12)', bgcolor: '#eff6ff' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ width: '100%' }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>오늘의 부대 업무</Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 300 }}>오늘의 부대 업무</Typography>
                       </Box>
                       <Button
                         variant="contained"
@@ -1078,9 +1170,11 @@ function AdminDashboard({
                         <Stack spacing={1.5}>
                           {[
                             ['업무일시', todayResultDocument.workDateTime],
-                            ['담당자', todayResultDocument.assignee],
-                            ['완료결과', todayResultDocument.completionResult],
-                            ['특이사항', todayResultDocument.specialNotes],
+                            ['상황', todayResultDocument.situation],
+                            ['발생내용', todayResultDocument.incident],
+                            ['원인', todayResultDocument.cause],
+                            ['조치내용', todayResultDocument.action],
+                            ['조치결과', todayResultDocument.result],
                           ].filter(([, value]) => value).map(([label, value]) => (
                             <Box key={label}>
                               <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block', mb: 0.4 }}>
@@ -1092,6 +1186,9 @@ function AdminDashboard({
                             </Box>
                           ))}
                         </Stack>
+                        {todayResultDocument.attachmentName && (
+                          <Chip label={todayResultDocument.attachmentName} color="primary" variant="outlined" sx={{ mt: 1.5 }} />
+                        )}
                       </Box>
                     )}
                   </Paper>
@@ -1100,10 +1197,30 @@ function AdminDashboard({
                 <Paper sx={{ p: 3, borderRadius: 4, mb: 3, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                     <Box sx={{ width: '100%', textAlign: 'center' }}>
-                      <Typography variant="overline" color="text.secondary">AI 업무 도우미</Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>부대 행정 요약</Typography>
+                      <Typography variant="overline" color="text.secondary" >부대 지식 영속화 AI</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 700, mb:1.5 }} >무엇을 도와드릴까요?</Typography>
+                      <Typography variant="h10" >부대 지식과 경험을 AI가 찾아드립니다.</Typography>
                     </Box>
-                    <Chip label="실시간 연결" color="success" size="small" />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Add sx={{ fontSize: 14 }} />}
+                      onClick={handleNewChat}
+                      sx={{
+                        flexShrink: 0,
+                        minWidth: 0,
+                        px: 1,
+                        py: 0,
+                        height: 28,
+                        minHeight: 24,
+                        fontSize: '0.8rem',
+                        lineHeight: 1,
+                        whiteSpace: 'nowrap',
+                        '& .MuiButton-startIcon': { mr: 0.5 },
+                      }}
+                    >
+                      새 채팅
+                    </Button>
                   </Stack>
 
                   <Divider sx={{ mb: 2 }} />
@@ -1133,7 +1250,7 @@ function AdminDashboard({
                     />
                     <Button
                       variant="contained"
-                      startIcon={<Chat />}
+                      startIcon={<Send />}
                       onClick={handleChatSubmit}
                       sx={{
                         px: 2,
@@ -1175,16 +1292,26 @@ function AdminDashboard({
                               출처
                             </Typography>
                             <Button
-                              variant="text"
+                              variant="outlined"
                               size="small"
-                              onClick={() => onViewChange('management')}
+                              onClick={() => {
+                                setExpandedRecords((prev) => ({ ...prev, [message.sourceId]: true }))
+                                onViewChange('management')
+                              }}
                               sx={{
                                 minWidth: 0,
-                                p: 0,
+                                px: 1,
+                                py: 0.25,
+                                borderColor: '#bfdbfe',
+                                borderRadius: 1,
                                 fontWeight: 700,
                                 color: '#1d4ed8',
                                 textTransform: 'none',
                                 justifyContent: 'flex-start',
+                                '&:hover': {
+                                  borderColor: '#1d4ed8',
+                                  bgcolor: '#eff6ff',
+                                },
                               }}
                             >
                               {message.sourceTitle}
