@@ -38,7 +38,6 @@ import {
   CloudUpload,
   Dashboard as DashboardIcon,
   Delete,
-  History,
   Lock,
   NoteAdd,
   Notifications,
@@ -337,29 +336,56 @@ function App() {
       sx={{
         width: '100%',
         minHeight: '100dvh',
-        display: 'grid',
-        placeItems: 'center',
-        background: '#fff',
-        px: 2,
-        py: { xs: 3, sm: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#fff',
         '& .MuiTypography-root, & .MuiButton-root, & .MuiInputBase-root, & .MuiInputLabel-root, & .MuiFormControlLabel-label, & .MuiAlert-message': {
           fontFamily: 'Paperozi',
         },
       }}
     >
-      <Card sx={{ width: '100%', maxWidth: 560, borderRadius: 0, border: 'none', boxShadow: 'none', bgcolor: 'transparent' }}>
+      <Box
+        component="nav"
+        aria-label="메인 메뉴"
+        sx={{
+          width: '100%',
+          minHeight: 72,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          px: { xs: 2, md: 3 },
+          bgcolor: '#fff',
+          '& .MuiTypography-root': { fontFamily: 'Paperozi' },
+        }}
+      >
+        <Toolbar disableGutters sx={{ height: '80px', px: 0 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Avatar sx={{ bgcolor: '#2563eb', width: 36, height: 36 }}>
+              <Shield fontSize="small" />
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontSize:'20px',color: '#0f172a' }}>
+                부대 지식 영속화 AI
+              </Typography>
+            </Box>
+          </Stack>
+        </Toolbar>
+      </Box>
+
+      <Box sx={{ flex: 1, width: '100%', display: 'grid', placeItems: 'center', px: 2, py: { xs: 3, sm: 4 }, bgcolor: '#fff' }}>
+      <Card sx={{ width: '100%', maxWidth: 800, borderRadius: 0, border: 'none', boxShadow: 'none', bgcolor: 'transparent' }}>
         <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
           <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
             <Typography variant="h2" sx={{ fontWeight: 700 }}>
-              부대 지식 영속화 AI
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              TACS 계급, 군번, 비밀번호를 입력해 주세요.
+              부대 지식과 경험을 AI가 찾아드립니다.
             </Typography>
           </Stack>
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mx: { xs: 6, sm: 7 } }}>
             <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              TACS 계급, 군번, 비밀번호를 입력해 주세요.
+            </Typography>
               <FormControl>
                 <RadioGroup row name="rank" value={form.rank} onChange={handleChange}>
                   {rankOptions.map((option) => (
@@ -422,6 +448,7 @@ function App() {
           </Box>
         </CardContent>
       </Card>
+      </Box>
     </Box>
   )
 }
@@ -486,7 +513,6 @@ function AdminDashboard({
 
   const sideItems = getVisibleSidebarItems(
     [
-      { id: 'record', label: '오늘의 업무 작성하기', icon: NoteAdd },
       { id: 'dashboard', label: '대시보드', icon: DashboardIcon },
       { id: 'completed', label: '완료된 업무', icon: CheckCircle },
       { id: 'knowledge', label: '저장된 지식', icon: Bookmark },
@@ -629,22 +655,15 @@ function AdminDashboard({
             {sideItems.map(({ id, label, icon: Icon }) => (
               <ListItem key={id} disablePadding sx={{ width: 'auto', flexShrink: 0 }}>
                 <ListItemButton
-                  onClick={() => {
-                    if (id === 'record') {
-                      onTodayWorkDialogOpen()
-                      return
-                    }
-                    onViewChange(id)
-                  }}
+                  onClick={() => onViewChange(id)}
                   sx={{
                     borderRadius: 2,
                     px: 1.5,
                     py: 1.25,
-                    color: id === 'record' ? '#fff' : '#334155',
-                    bgcolor: id === 'record' ? '#1d4ed8' : 'transparent',
-                    boxShadow: id === 'record' ? '0 8px 20px rgba(37, 99, 235, 0.25)' : 'none',
+                    color: '#334155',
+                    bgcolor: 'transparent',
                     '&:hover': {
-                      bgcolor: id === 'record' ? '#1d4ed8' : 'rgba(15, 23, 42, 0.06)',
+                      bgcolor: 'rgba(15, 23, 42, 0.06)',
                     },
                   }}
                 >
@@ -655,18 +674,12 @@ function AdminDashboard({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: id === 'record' ? '#fff' : '#334155',
+                      color: '#334155',
                     }}
                   >
-                    {id === 'record' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18 }}>
-                        <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 700, color: '#fff', fontSize: 20 }}>+</Typography>
-                      </Box>
-                    ) : (
-                      <Icon fontSize="small" />
-                    )}
+                    <Icon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14, fontWeight: id === 'record' ? 700 : 500 }} />
+                  <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -684,6 +697,21 @@ function AdminDashboard({
               minWidth: 0,
             }}
           >
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<NoteAdd />}
+              onClick={onTodayWorkDialogOpen}
+              sx={{
+                fontFamily: 'Paperozi',
+                whiteSpace: 'nowrap',
+                px: { xs: 1, sm: 1.5 },
+                mr: { xs: 1.5, sm: 2 },
+                minWidth: 0,
+              }}
+            >
+              오늘의 업무 작성하기
+            </Button>
             <Avatar sx={{ bgcolor: '#2563eb', width: 34, height: 34, fontFamily: 'Paperozi' }}>
               {userInfo?.name?.[0] || <Person fontSize="small" />}
             </Avatar>
@@ -978,12 +1006,18 @@ function AdminDashboard({
           </Dialog>
 
           {activeView === 'knowledge' && (
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5,mt:10 }}>
               <Typography variant="h4" sx={{ fontWeight: 700,ml:2 }}>저장된 지식</Typography>
               <Button variant="contained" startIcon={<NoteAdd />} onClick={onKnowledgeDialogOpen} sx={{ ml: 2 }}>
                 지식 기록하기
               </Button>
             </Stack>
+          )}
+
+          {activeView === 'completed' && (
+            <Typography variant="h4" sx={{ fontWeight: 700, ml: 2, mt: 10, mb: 2.5 }}>
+              완료된 업무
+            </Typography>
           )}
 
           {(activeView === 'knowledge' || activeView === 'management' || activeView === 'completed') && (
@@ -1022,9 +1056,6 @@ function AdminDashboard({
                   <Paper key={item.id} sx={{ p: 3, borderRadius: 4, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
                       <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Avatar sx={{ bgcolor: '#dbeafe', color: '#1d4ed8' }}>
-                          <History />
-                        </Avatar>
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>{item.title}</Typography>
                       </Stack>
 
@@ -1115,7 +1146,7 @@ function AdminDashboard({
           )}
 
           {activeView !== 'record' && activeView !== 'knowledge' && activeView !== 'management' && activeView !== 'completed' && (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center',mt:10 }}>
               <Box sx={{ width: '100%', maxWidth: 880, mx: 'auto' }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
                   {dashboardSummaryCards.map(({ label, value, tone, icon: Icon }) => (

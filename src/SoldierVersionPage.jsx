@@ -23,7 +23,6 @@ import {
   Bookmark,
   CheckCircle,
   Dashboard as DashboardIcon,
-  History,
   Notifications,
   Person,
   Send,
@@ -235,14 +234,14 @@ function SoldierVersionPage({ userInfo, onLogout }) {
         </Box>
       </Box>
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column',mt:10 }}>
         <Container maxWidth="xl" sx={{ py: 3 }}>
           {activeView !== 'knowledge' && activeView !== 'completed' && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Box sx={{ width: '100%', maxWidth: 1000 }}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 10, mb: 3 }}>
                   {summaryCards.map(({ label, value, tone, icon: Icon }) => (
-                    <Card key={label} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(34, 197, 94, 0.12)' }}>
+                    <Card key={label} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(254, 255, 254, 0.12)' }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
                           <Typography variant="caption" color="text.secondary">{label}</Typography>
@@ -275,7 +274,7 @@ function SoldierVersionPage({ userInfo, onLogout }) {
                   ))}
                 </Stack>
 
-                <Paper sx={{ p: 3, borderRadius: 4, mb: 3, border: '1px solid rgba(15, 23, 42, 0.05)', bgcolor: '#f8fafc' }}>
+                <Paper sx={{ p: 3, borderRadius: 4, mb: 3, border: '1px solid rgba(15, 23, 42, 0.05)', bgcolor: '#ffffff' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                     <Box sx={{ width: '100%', textAlign: 'center' }}>
                       <Typography variant="overline" color="text.secondary">부대 지식 영속화 AI</Typography>
@@ -422,9 +421,6 @@ function SoldierVersionPage({ userInfo, onLogout }) {
                   <Paper key={item.id} sx={{ p: 3, borderRadius: 4, border: '1px solid rgba(34, 197, 94, 0.08)', bgcolor: '#ffffff' }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
                       <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Avatar sx={{ bgcolor: '#dcfce7', color: '#166534' }}>
-                          <History />
-                        </Avatar>
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>{item.title}</Typography>
                       </Stack>
 
