@@ -2,16 +2,12 @@ import { useEffect, useState } from 'react'
 import {
   Avatar,
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
   Container,
   Divider,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Paper,
   Stack,
   TextField,
@@ -37,6 +33,7 @@ const summaryCards = [
 
 const sidebarItems = [
   { id: 'dashboard', label: '대시보드', icon: DashboardIcon },
+  { id: 'completed', label: '완료된 업무', icon: CheckCircle },
   { id: 'knowledge', label: '저장된 지식', icon: Bookmark },
 ]
 
@@ -114,8 +111,7 @@ function SoldierVersionPage({ userInfo, onLogout }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#f4f6fb' }}>
       <Box
-        component="nav"
-        aria-label="메인 메뉴"
+        component="header"
         sx={{
           position: 'sticky',
           top: 0,
@@ -161,43 +157,42 @@ function SoldierVersionPage({ userInfo, onLogout }) {
             </Stack>
           </Toolbar>
 
-          <List
+          <Breadcrumbs
+            aria-label="페이지 경로"
+            separator=""
             sx={{
-              display: 'flex',
-              flexDirection: 'row',
               gridColumn: { xs: 1, sm: '1 / -1', lg: 2 },
-              justifySelf: { xs: 'stretch', lg: 'center' },
-              justifyContent: { xs: 'flex-start', sm: 'center' },
-              gap: 0.5,
-              p: 0,
+              justifySelf: { xs: 'start', lg: 'center' },
               minWidth: 0,
-              width: { xs: '100%', lg: 'auto' },
               overflowX: 'auto',
-              '& .MuiListItemButton-root': { whiteSpace: 'nowrap' },
+              whiteSpace: 'nowrap',
+              '& .MuiBreadcrumbs-ol': { flexWrap: 'nowrap' },
             }}
           >
             {sidebarItems.map(({ id, label, icon: Icon }) => (
-              <ListItem key={id} disablePadding>
-                <ListItemButton
+              <Button
+                key={id}
+                size="small"
+                aria-current={activeView === id ? 'page' : undefined}
                   onClick={() => setActiveView(id)}
                   sx={{
-                    borderRadius: 2,
-                    px: 1.5,
-                    py: 1.25,
-                    my: 0.35,
-                    color: '#334155',
-                    bgcolor: 'transparent',
-                    '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.06)' },
+                    minWidth: 0,
+                    px: 0.5,
+                    fontSize: '0.95rem',
+                    color: activeView === id ? '#166534' : '#475569',
+                    fontWeight: activeView === id ? 700 : 500,
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '3px',
+                    },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 28, mr: 0.5, color: '#334155' }}>
-                    <Icon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14, fontWeight: 600, color: '#334155' }} />
-                </ListItemButton>
-              </ListItem>
+                <Icon fontSize="small" sx={{ mr: 0.5 }} />
+                {label}
+              </Button>
             ))}
-          </List>
+          </Breadcrumbs>
 
           <Stack
             direction="row"

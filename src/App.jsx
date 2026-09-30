@@ -3,6 +3,7 @@ import {
   Alert,
   Avatar,
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -17,11 +18,6 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Paper,
   Radio,
   RadioGroup,
@@ -345,8 +341,7 @@ function App() {
       }}
     >
       <Box
-        component="nav"
-        aria-label="메인 메뉴"
+        component="header"
         sx={{
           width: '100%',
           minHeight: 72,
@@ -637,53 +632,42 @@ function AdminDashboard({
             </Stack>
           </Toolbar>
 
-          <List
+          <Breadcrumbs
+            aria-label="페이지 경로"
+            separator=""
             sx={{
-              display: 'flex',
-              flexDirection: 'row',
               gridColumn: { xs: 1, sm: '1 / -1', lg: 2 },
-              justifySelf: { xs: 'stretch', lg: 'center' },
-              justifyContent: { xs: 'flex-start', sm: 'center' },
-              gap: 0.5,
-              p: 0,
+              justifySelf: { xs: 'start', lg: 'center' },
               minWidth: 0,
-              width: { xs: '100%', lg: 'auto' },
               overflowX: 'auto',
-              '& .MuiListItemButton-root': { whiteSpace: 'nowrap' },
+              whiteSpace: 'nowrap',
+              '& .MuiBreadcrumbs-ol': { flexWrap: 'nowrap' },
             }}
           >
             {sideItems.map(({ id, label, icon: Icon }) => (
-              <ListItem key={id} disablePadding sx={{ width: 'auto', flexShrink: 0 }}>
-                <ListItemButton
+              <Button
+                key={id}
+                size="small"
+                aria-current={activeView === id ? 'page' : undefined}
                   onClick={() => onViewChange(id)}
                   sx={{
-                    borderRadius: 2,
-                    px: 1.5,
-                    py: 1.25,
-                    color: '#334155',
-                    bgcolor: 'transparent',
+                    minWidth: 0,
+                    px: 0.5,
+                    fontSize: '0.95rem',
+                    color: activeView === id ? '#1d4ed8' : '#475569',
+                    fontWeight: activeView === id ? 700 : 500,
+                    whiteSpace: 'nowrap',
                     '&:hover': {
-                      bgcolor: 'rgba(15, 23, 42, 0.06)',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '3px',
                     },
                   }}
                 >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 28,
-                      mr: 0.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#334155',
-                    }}
-                  >
-                    <Icon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }} />
-                </ListItemButton>
-              </ListItem>
+                <Icon fontSize="small" sx={{ mr: 0.5 }} />
+                {label}
+              </Button>
             ))}
-          </List>
+          </Breadcrumbs>
 
           <Stack
             direction="row"
@@ -1053,7 +1037,7 @@ function AdminDashboard({
                 const isExpanded = !!expandedRecords[item.id]
 
                 return (
-                  <Paper key={item.id} sx={{ p: 3, borderRadius: 4, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
+                  <Paper key={item.id} sx={{ p: 3, borderRadius: 2, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
                       <Stack direction="row" alignItems="center" spacing={1.5}>
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>{item.title}</Typography>
@@ -1150,7 +1134,7 @@ function AdminDashboard({
               <Box sx={{ width: '100%', maxWidth: 880, mx: 'auto' }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
                   {dashboardSummaryCards.map(({ label, value, tone, icon: Icon }) => (
-                    <Card key={label} sx={{ flex: 1, borderRadius: 3 }}>
+                    <Card key={label} sx={{ flex: 1, borderRadius: 2 }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.875rem' }}>{label}</Typography>
@@ -1260,7 +1244,7 @@ function AdminDashboard({
                   </Paper>
                 )}
 
-                <Paper sx={{ p: 3, borderRadius: 4, mb: 3, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
+                <Paper sx={{ p: 3, borderRadius: 3, mb: 3, border: '1px solid rgba(15, 23, 42, 0.05)' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                     <Box sx={{ width: '100%', textAlign: 'center' }}>
                       <Typography variant="overline" color="text.secondary" >부대 지식 영속화 AI</Typography>
