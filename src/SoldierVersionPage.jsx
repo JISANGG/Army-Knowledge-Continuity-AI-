@@ -31,7 +31,7 @@ import {
 import { soldierKnowledgeDemo } from './data/soldierKnowledgeDemo'
 
 const summaryCards = [
-  { label: '저장된 지식', value: '3건', tone: 'primary', icon: CheckCircle },
+  { label: '저장된 지식', value: '3건', tone: 'primary', icon: Bookmark },
   { label: '완료된 업무', value: '1건', tone: 'warning', icon: Notifications },
 ]
 
@@ -244,7 +244,7 @@ function SoldierVersionPage({ userInfo, onLogout }) {
                     <Card key={label} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(254, 255, 254, 0.12)' }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
-                          <Typography variant="caption" color="text.secondary">{label}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{fontSize:14}}>{label}</Typography>
                           <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 700 }}>{value}</Typography>
                         </Box>
                         <Avatar
@@ -429,7 +429,7 @@ function SoldierVersionPage({ userInfo, onLogout }) {
                         size="small"
                         onClick={() => toggleExpandedRecord(item.id)}
                         sx={{
-                          minWidth: 120,
+                          minWidth: 90,
                           px: 1.5,
                           py: 0.8,
                           borderRadius: 2,

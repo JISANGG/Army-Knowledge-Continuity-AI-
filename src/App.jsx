@@ -54,8 +54,8 @@ import SoldierVersionPage from './SoldierVersionPage'
 const rankOptions = ['장교', '부사관', '용사']
 
 const summaryCards = [
-  { label: '저장된 지식', value: '18건', tone: 'primary', icon: CheckCircle },
-  { label: '완료된 업무', value: '3건', tone: 'warning', icon: Notifications },
+  { label: '저장된 지식', value: '18건', tone: 'primary', icon: Bookmark },
+  { label: '완료된 업무', value: '3건', tone: 'warning', icon: CheckCircle },
 ]
 
 const initialChatMessages = []
@@ -372,7 +372,7 @@ function App() {
         </Toolbar>
       </Box>
 
-      <Box sx={{ flex: 1, width: '100%', display: 'grid', placeItems: 'center', px: 2, py: { xs: 3, sm: 4 }, bgcolor: '#fff' }}>
+      <Box sx={{  mb:20,flex: 1, width: '100%', display: 'grid', placeItems: 'center', px: 2, py: { xs: 3, sm: 4 }, bgcolor: '#fff' }}>
       <Card sx={{ width: '100%', maxWidth: 800, borderRadius: 0, border: 'none', boxShadow: 'none', bgcolor: 'transparent' }}>
         <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
           <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
@@ -1007,7 +1007,7 @@ function AdminDashboard({
 
           {activeView === 'knowledge' && (
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5,mt:10 }}>
-              <Typography variant="h4" sx={{ fontWeight: 700,ml:2 }}>저장된 지식</Typography>
+              <Typography variant="h4" sx={{ ml:2, color: '#353535' }}>저장된 지식</Typography>
               <Button variant="contained" startIcon={<NoteAdd />} onClick={onKnowledgeDialogOpen} sx={{ ml: 2 }}>
                 지식 기록하기
               </Button>
@@ -1015,7 +1015,7 @@ function AdminDashboard({
           )}
 
           {activeView === 'completed' && (
-            <Typography variant="h4" sx={{ fontWeight: 700, ml: 2, mt: 10, mb: 2.5 }}>
+            <Typography variant="h4" sx={{ ml: 2, mt: 10, mb: 2.5, color:'#353535' }}>
               완료된 업무
             </Typography>
           )}
@@ -1074,7 +1074,7 @@ function AdminDashboard({
                             size="small"
                             onClick={() => toggleExpandedRecord(item.id)}
                             sx={{
-                              minWidth: 120,
+                              minWidth: 90,
                               px: 1.5,
                               py: 0.8,
                               borderRadius: 2,
@@ -1153,8 +1153,8 @@ function AdminDashboard({
                     <Card key={label} sx={{ flex: 1, borderRadius: 3 }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
-                          <Typography variant="caption" color="text.secondary">{label}</Typography>
-                          <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 700 }}>{value}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.875rem' }}>{label}</Typography>
+                          <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 700, fontSize: '1.6rem' }}>{value}</Typography>
                         </Box>
                         <Avatar
                           sx={{
